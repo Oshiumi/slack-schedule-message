@@ -1,0 +1,10 @@
+env: flex
+runtime: custom
+
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 5
+
+resources:
+  cpu: .5
+  memory_gb: 2
