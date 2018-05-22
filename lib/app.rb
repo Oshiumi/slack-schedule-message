@@ -50,23 +50,28 @@ class ScheduleMessageBot < Sinatra::Base
     }
 
     puts dialog, trigger_id
-    ok = @client.dialog_open(dialog: dialog.to_json, trigger_id: trigger_id)
 
-    if ok
-      ""
-    else
+    begin
+     @client.dialog_open(dialog: dialog.to_json, trigger_id: trigger_id)
+    rescue => e
+      status 500
       "Oops...\n Schedule message is failed.\n Please contact Schedule Message maintainer."
     end
+    ""
   end
 
   post '/result' do
-    p params
-    p json = JSON.parse(params[:payload])["submission"]
+    json = JSON.parse(params[:payload])["submission"]
     channel_id = json["channel"]
     date = Time.parse(json["post_date"]).strftime("%H:%M %m%d%Y")
     text = json["text"]
-    `echo 'bundle ex ruby -e "require \"./lib/slack_service.rb\";SlackService.new.post_message(channel: \"#{channel_id}\", text: \"#{text}\")"' | at #{date}`
-    "ok"
+    p status = `echo 'bundle ex ruby -e "require \"./lib/slack_service.rb\";SlackService.new.post_message(channel: \"#{channel_id}\", text: \"#{text}\")"' | at #{date}`
+    if $?&.success?
+      "ok"
+    else
+      status 500
+      "Failed to register schedule message."
+    end
   end
 
   get '/' do

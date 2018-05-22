@@ -4,9 +4,7 @@ ENV HOME=/slack
 WORKDIR $HOME
 
 RUN apt-get update
-RUN apt-get install -y -q --no-install-recommends at
-
-EXPOSE 8080
+RUN apt-get install -y -q --no-install-recommends at supervisor
 
 COPY Gemfile $HOME
 RUN bundle install --without test
@@ -15,11 +13,10 @@ COPY ./lib $HOME/lib
 COPY unicorn.conf $HOME
 COPY config.ru $HOME
 COPY .env $HOME
-COPY entrypoint.sh /etc
 
-RUN mkdir tmp tmp/pids log
+RUN mkdir -p tmp/pids log /var/log/supervisor
+
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR $HOME
-RUN chmod 755 /etc/entrypoint.sh
-ENTRYPOINT /etc/entrypoint.sh
-
+CMD ["/usr/bin/supervisord"]
